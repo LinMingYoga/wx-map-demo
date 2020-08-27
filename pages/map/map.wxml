@@ -1,0 +1,14 @@
+<view class="lm-form">
+  <form>
+    <view class="site getOn" catchtap='getOnAddress'>
+      <div>{{onAddress}}</div>
+    </view>
+    <view class="site getOff" catchtap='getOffAddress'>
+      <div>{{offAddress}}</div>
+    </view>
+    <view class="goCar">
+      <button>立即预约</button>
+    </view>
+  </form>
+</view>
+<map id="map" longitude="{{longitude}}" latitude="{{latitude}}" markers="{{markers}}" ></map>
