@@ -1,129 +1,164 @@
-// pages/map/map.js
+var amapFile = require('../../libs/amap-wx');
 Page({
-
-  /**
-   * 页面的初始数据
-   */
   data: {
-    markers: [{
-      iconPath: "/images/dingwei.png",
-      id: 0,
-      latitude: 0,
-      longitude: 0,
-      width: 30,
-      height: 30
-    }],
-    latitude: 0,
-    longitude: 0,
-    onAddress: '请选择您的上车地点',
-    offAddress: '请选择您的上车地点'
+    key: 'd52e2bc9790f5508203e5308636a5335',
+    show: false,
+    currentLo : null,
+    currentLa : null,
+    newCurrentLo : null,
+    newCurrentLa : null,
+    distance : 0,
+    duration : 0,
+    markers : null,
+    scale: 16,
+    polyline: null,
+    statusType: 'car',
+    includePoints:[],
+    getOnAddress: '',
+    getOffAddress: ''
   },
-
-  getOnAddress () {
-    var _this = this
-    wx.chooseLocation({
-      success: function (res) {
-        console.log(res)
-        _this.setData({
-          onAddress: res.address
-        })
-      }
-    })
-  },
-  getOffAddress () {
-    // wx.chooseLocation({
-    //   success: (res) => {
-    //     this.setData({
-    //       offAddress: res.address
-    //     })
-    //   },
-    // })
-    let data = this.getAddress()
-    console.log(data);
-  },
-
-  getAddress() {
-    return new Promise((resolve, reject) => {
-      wx.chooseLocation({
-        success: (res) => {
-          resolve(res)
-        }
-      })
-    })
-  },
-
-  /**
-   * 生命周期函数--监听页面加载
-   */
-  onLoad: function (options) {
-    var _this = this
+  onLoad(){
+    var _this = this;
     wx.getLocation({
-      type: 'wgs84',
-      success: function(res) {
-        const data = _this.data.markers[0]
-        data.latitude = res.latitude,
-        data.longitude = res.longitude
-        _this.setData({
-          latitude: res.latitude,
-          longitude: res.longitude,
-          markers: [data]
-        })
-        console.log(res, _this.data);
-        
+      success(res){
+        _this.setData({ 
+          currentLo: res.longitude, 
+          currentLa: res.latitude,
+          includePoints: [{
+            longitude: res.longitude,
+            latitude: res.latitude
+          }],
+          markers: [{
+            id: 0,
+            longitude: res.longitude,
+            latitude: res.latitude,
+            title: res.address,
+            iconPath: '../../images/dingwei.png',
+            width: 32,
+            height: 32
+          }]
+        });
       }
     })
   },
+  getAddress(e){
+    var that = this
+    wx.chooseLocation({
+      success(res){
+        console.log('上车', res);
+        var markers = that.data.markers;
+        markers.push({
+          id: 1,
+          longitude: res.longitude,
+          latitude: res.latitude,
+          title: res.address,
+          iconPath: '../../images/dingwei.png',
+          width: 32,
+          height: 32
+        });
 
-  /**
-   * 生命周期函数--监听页面初次渲染完成
-   */
-  onReady: function () {
-    // wx.chooseLocation({
-    //   success: function (res) {
-    //     console.log(res)
-    //   }
-    // })
+        var points = that.data.includePoints;
+        points.push({
+          longitude: res.longitude,
+          latitude: res.latitude
+        });
+        that.setData({
+          newCurrentLo: res.longitude,
+          newCurrentLa: res.latitude,
+          includePoints: points,
+          markers: markers,
+          show:false,
+          getOnAddress: res.name
+        });
+        that.getPolyline(that.data.statusType);
+      }
+    });
   },
+  getOffAddress(e) {
+    var that = this
+    wx.chooseLocation({
+      success(res){
+        console.log('下车', res);
+        var markers = that.data.markers;
+        markers.push({
+          id: 0,
+          longitude: res.longitude,
+          latitude: res.latitude,
+          title: res.address,
+          iconPath: '../../images/dingwei.png',
+          width: 32,
+          height: 32
+        });
 
-  /**
-   * 生命周期函数--监听页面显示
-   */
-  onShow: function () {
-    
+        var points = that.data.includePoints;
+        points.push({
+          longitude: res.longitude,
+          latitude: res.latitude
+        });
+        that.setData({
+          newCurrentLo: res.longitude,
+          newCurrentLa: res.latitude,
+          includePoints: points,
+          markers: markers,
+          show:true,
+          getOffAddress: res.name
+        });
+        that.getPolyline(that.data.statusType);
+      }
+    });
   },
-
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide: function () {
-
+  drawPolyline(self,color){
+    return {
+      origin: this.data.currentLo + ',' + this.data.currentLa,
+      destination: this.data.newCurrentLo + ',' + this.data.newCurrentLa,
+      success(data) {
+        var points = [];
+        if (data.paths && data.paths[0] && data.paths[0].steps) {
+          var steps = data.paths[0].steps;
+          for (var i = 0; i < steps.length; i++) {
+            var poLen = steps[i].polyline.split(';');
+            for (var j = 0; j < poLen.length; j++) {
+              points.push({
+                longitude: parseFloat(poLen[j].split(',')[0]),
+                latitude: parseFloat(poLen[j].split(',')[1])
+              })
+            }
+          }
+        }
+        self.setData({
+          distance: data.paths[0].distance,
+          duration: parseInt(data.paths[0].duration/60),
+          polyline: [{
+            points: points,
+            color: color,
+            width: 6,
+            arrowLine: true
+          }]
+        });
+      }
+    }
   },
-
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload: function () {
-
+  getPolyline(){
+    var amap = new amapFile.AMapWX({ key: this.data.key });
+    var self = this;
+    amap.getDrivingRoute(this.drawPolyline(self,"#0091ff"));
+    // switch (_type){
+    //   case 'car':
+    //     amap.getDrivingRoute(this.drawPolyline(this,"#0091ff"));
+    //     break;
+    //   case 'walk':
+    //     amap.getWalkingRoute(this.drawPolyline(this, "#1afa29"));
+    //     break;
+    //   case 'ride':
+    //     amap.getRidingRoute(this.drawPolyline(this, "#1296db"));
+    //     break;
+    //   default:
+    //     return false;
+    // }
   },
-
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh: function () {
-
-  },
-
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom: function () {
-
-  },
-
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage: function () {
-
+  goTo(e){
+    // var _type = 'car';
+    // this.setData({statusType : _type});
+    this.getPolyline(this.data.statusType);
   }
 })

@@ -1,39 +1,77 @@
-/* pages/map/map.wxss */
 .lm-form {
-  /* position: fixed;
-  z-index: 999; */
   width: 100%;
-  color: #fff;
-  background: #fff;
-  /* background-color: rgba(0,0,0, .5); */
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000000;
+  background-color: #ccc;
 }
-.lm-form form {
-  display: flex;
-  width: 100vw;
-  padding: 10px 0;
-  justify-content: center;
+.tui-map-search{
+  width: 100%;
+  height: 80rpx;
+  
+  box-sizing: border-box;
+  padding: 5rpx 10px;
+  background-color: #fff;
+  line-height: 70rpx;
 }
-.lm-form .site {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 300px;
-  border: 1px solid rgb(44, 185, 74);
-  border-radius: 10px;
-  padding: 10px 0;
-  text-align: center;
-  color: #ccc;
+.tui-map-input{
+  height: 70rpx;
+  line-height: 70rpx;
+  font-size: 30rpx;
+  margin-left: 25px;
 }
-.lm-form .getOn {
-  margin-bottom: 10px;
+.tui-map-search-icon{
+  position: absolute;
+  top: calc(50% - 10px);
+  left: 10px;
 }
-.lm-form .goCar >button {
-  margin-top: 10px;
-  background-color: rgb(75, 228, 61);
-  color: #333;
-  font-weight: 300;
-}
-#map {
+.tui-map{
   width: 100%;
   height: 100vh;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+}
+.tui-map-direction{
+  width: 32px;
+  height: 32px;
+  position: fixed;
+  right: 10px;
+  bottom: 80px;
+  z-index: 100000;
+}
+
+.page-group{
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+  background-color: #fff;
+}
+.page-nav-list{
+  padding:20rpx 0 ;
+  font-size: 30rpx;
+  display: table-cell;
+  text-align: center;
+  width: 100%;
+  color: #222;
+}
+.page-nav-list.active{color:blue;}
+.tui-warn{
+  height: 50px;
+  line-height: 50px;
+  padding-left: 10px;
+  color: lightseagreen;
+  font-size: 30rpx;
+}
+.tui-search-bottom{
+  background: #fff;
+  width: 100%;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  z-index: 1000;
+}
+.tui-hide {
+  display: none;
 }
